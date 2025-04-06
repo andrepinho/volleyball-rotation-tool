@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const resetButton = document.getElementById("reset-button");
   const rotateButton = document.getElementById("rotate-button");
   const svgContainer = document.querySelector(".connection-lines");
-  const inputs = document.querySelectorAll('input[type="text"]');
 
   let activePlayer = null;
   let offsetX, offsetY;
@@ -86,35 +85,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialize
   initializePositions();
 
-  // Set up event listeners for name inputs
-  inputs.forEach((input) => {
-    const position = input.id.substring(5); // Get the position number from inputX
-
-    input.addEventListener("input", function () {
-      // Convert to uppercase
-      this.value = this.value.toUpperCase();
-
-      // Update the player name on the court
-      const nameElement = document.getElementById(`name${position}`);
-      if (nameElement) {
-        nameElement.innerText = this.value;
-      }
-    });
-
-    // Enforce 2 character limit
-    input.addEventListener("keydown", function (e) {
-      if (
-        this.value.length >= 2 &&
-        e.key !== "Backspace" &&
-        e.key !== "Delete" &&
-        e.key !== "ArrowLeft" &&
-        e.key !== "ArrowRight"
-      ) {
-        e.preventDefault();
-      }
-    });
-  });
-
   // Reset positions when button is clicked
   resetButton.addEventListener("click", function () {
     initializePositions();
@@ -149,12 +119,6 @@ document.addEventListener("DOMContentLoaded", function () {
     for (let i = 1; i <= 6; i++) {
       const rotatedPosition = rotationMap[i];
       newNames[rotatedPosition] = document.getElementById(`name${i}`).innerText;
-    }
-
-    // Update names on court and in inputs
-    for (let i = 1; i <= 6; i++) {
-      document.getElementById(`name${i}`).innerText = newNames[i];
-      document.getElementById(`input${i}`).value = newNames[i];
     }
   }
 
