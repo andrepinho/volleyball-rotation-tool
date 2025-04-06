@@ -1,828 +1,645 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
     <title>Volleyball Positions Teaching Tool</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .instructions {
-            max-width: 600px;
-            margin-bottom: 20px;
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .court-container {
-            position: relative;
-            width: 600px;
-            height: 450px;
-            margin: 0 auto;
-        }
-
-        .court {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background-color: #e5d1a4;
-            border: 3px solid #333;
-            box-sizing: border-box;
-            border-bottom: 6px solid #333;
-            overflow: hidden;
-        }
-
-        .net {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 20px;
-            background-color: #333;
-            display: flex;
-            overflow: hidden;
-        }
-
-        .net::after {
-            content: "";
-            position: absolute;
-            top: 5px;
-            left: 0;
-            right: 0;
-            height: 20px;
-            background: repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 10px,
-                #999 10px,
-                #999 12px
-            );
-        }
-
-        .net-pole {
-            position: absolute;
-            top: 0;
-            width: 8px;
-            height: 30px;
-            background-color: #8B4513;
-        }
-
-        .net-pole.left {
-            left: -5px;
-        }
-
-        .net-pole.right {
-            right: -5px;
-        }
-
-        .net-mesh {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            right: 0;
-            height: 30px;
-            background: repeating-linear-gradient(
-                #fff 0px, 
-                #fff 2px, 
-                transparent 2px, 
-                transparent 8px
-            ),
-            repeating-linear-gradient(
-                90deg,
-                #fff 0px, 
-                #fff 2px, 
-                transparent 2px, 
-                transparent 8px
-            );
-            opacity: 0.3;
-            border-bottom: 2px solid #fff;
-        }
-
-        .player {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: #3498db;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: grab;
-            user-select: none;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
-            transition: background-color 0.3s, transform 0.1s;
-        }
-
-        .player:active {
-            cursor: grabbing;
-            transform: scale(1.1);
-        }
-
-        .player.highlight {
-            animation: flash 0.5s;
-        }
-
-        .player.related {
-            background-color: #9b59b6;
-            box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.5);
-        }
-
-        .player.active {
-            background-color: #f39c12;
-            transform: scale(1.1);
-            z-index: 10;
-        }
-
-        .player-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 2px;
-        }
-
-        .player-position {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        @keyframes flash {
-            0%, 100% { background-color: #3498db; }
-            50% { background-color: #e74c3c; }
-        }
-
-        .boundary-line {
-            position: absolute;
-            background-color: #e74c3c;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .boundary-line.vertical {
-            width: 3px;
-            height: 100%;
-        }
-
-        .boundary-line.horizontal {
-            width: 100%;
-            height: 3px;
-        }
-
-        .boundary-line.active {
-            animation: flashLine 0.5s;
-        }
-
-        @keyframes flashLine {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 0.8; }
-        }
-        
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 20px;
-            width: 600px;
-        }
-
-        .name-inputs {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .input-group label {
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .input-group input {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        .buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 10px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            background-color: #2c3e50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .btn:hover {
-            background-color: #1a252f;
-        }
-
-        .btn-rotate {
-            background-color: #8e44ad;
-        }
-        
-        .btn-rotate:hover {
-            background-color: #703688;
-        }
-
-        .connection-line {
-            position: absolute;
-            pointer-events: none;
-            stroke: #9b59b6;
-            stroke-width: 2;
-            stroke-dasharray: 5, 5;
-            opacity: 0.7;
-            z-index: 5;
-        }
-    </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Volleyball Positions Teaching Tool</h1>
-    
+
     <div class="instructions">
-        <p><strong>Instructions:</strong> Click and drag to move players. Each player's movement is limited by their relative neighbors. Players cannot cross their teammates' relative positions. The court is divided into 6 positions:</p>
-        <ul>
-            <li><strong>Front row:</strong> 4, 3, 2</li>
-            <li><strong>Back row:</strong> 5, 6, 1</li>
-        </ul>
-        <p>When you select a player, its related players (those that constrain its movement) will be highlighted in purple.</p>
-        <p>You can customize player names (maximum 2 letters) and rotate players clockwise using the controls below the court.</p>
+      <p>
+        <strong>Instructions:</strong> Click and drag to move players. Each
+        player's movement is limited by their relative neighbors. Players cannot
+        cross their teammates' relative positions. The court is divided into 6
+        positions:
+      </p>
+      <ul>
+        <li><strong>Front row:</strong> 4, 3, 2</li>
+        <li><strong>Back row:</strong> 5, 6, 1</li>
+      </ul>
+      <p>
+        When you select a player, its related players (those that constrain its
+        movement) will be highlighted in purple.
+      </p>
+      <p>
+        You can customize player names (maximum 2 letters) and rotate players
+        clockwise using the controls below the court.
+      </p>
     </div>
-    
+
     <div class="court-container">
-        <div class="court">
-            <div class="net">
-                <div class="net-pole left"></div>
-                <div class="net-pole right"></div>
-            </div>
-            <div class="net-mesh"></div>
-            <svg class="connection-lines" style="position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></svg>
-            <div class="player" id="player4" data-position="4">
-                <div class="player-name" id="name4">Op</div>
-                <div class="player-position">4</div>
-            </div>
-            <div class="player" id="player3" data-position="3">
-                <div class="player-name" id="name3">Ce</div>
-                <div class="player-position">3</div>
-            </div>
-            <div class="player" id="player2" data-position="2">
-                <div class="player-name" id="name2">Po</div>
-                <div class="player-position">2</div>
-            </div>
-            <div class="player" id="player5" data-position="5">
-                <div class="player-name" id="name5">Po</div>
-                <div class="player-position">5</div>
-            </div>
-            <div class="player" id="player6" data-position="6">
-                <div class="player-name" id="name6">Lb</div>
-                <div class="player-position">6</div>
-            </div>
-            <div class="player" id="player1" data-position="1">
-                <div class="player-name" id="name1">Lv</div>
-                <div class="player-position">1</div>
-            </div>
-            
-            <div class="boundary-line vertical"></div>
-            <div class="boundary-line horizontal"></div>
+      <div class="court">
+        <div class="net">
+          <div class="net-pole left"></div>
+          <div class="net-pole right"></div>
         </div>
+        <div class="net-mesh"></div>
+        <svg
+          class="connection-lines"
+          style="
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+          "
+        ></svg>
+        <div class="player" id="player4" data-position="4">
+          <div class="player-name" id="name4">Op</div>
+          <div class="player-position">4</div>
+        </div>
+        <div class="player" id="player3" data-position="3">
+          <div class="player-name" id="name3">Ce</div>
+          <div class="player-position">3</div>
+        </div>
+        <div class="player" id="player2" data-position="2">
+          <div class="player-name" id="name2">Po</div>
+          <div class="player-position">2</div>
+        </div>
+        <div class="player" id="player5" data-position="5">
+          <div class="player-name" id="name5">Po</div>
+          <div class="player-position">5</div>
+        </div>
+        <div class="player" id="player6" data-position="6">
+          <div class="player-name" id="name6">Lb</div>
+          <div class="player-position">6</div>
+        </div>
+        <div class="player" id="player1" data-position="1">
+          <div class="player-name" id="name1">Lv</div>
+          <div class="player-position">1</div>
+        </div>
+
+        <div class="boundary-line vertical"></div>
+        <div class="boundary-line horizontal"></div>
+      </div>
     </div>
-    
+
     <div class="controls">
-        <div class="name-inputs">
-            <div class="input-group">
-                <label for="input4">Player 4</label>
-                <input type="text" id="input4" maxlength="2" value="Op">
-            </div>
-            <div class="input-group">
-                <label for="input3">Player 3</label>
-                <input type="text" id="input3" maxlength="2" value="Ce">
-            </div>
-            <div class="input-group">
-                <label for="input2">Player 2</label>
-                <input type="text" id="input2" maxlength="2" value="Po">
-            </div>
-            <div class="input-group">
-                <label for="input5">Player 5</label>
-                <input type="text" id="input5" maxlength="2" value="Po">
-            </div>
-            <div class="input-group">
-                <label for="input6">Player 6</label>
-                <input type="text" id="input6" maxlength="2" value="Lb">
-            </div>
-            <div class="input-group">
-                <label for="input1">Player 1</label>
-                <input type="text" id="input1" maxlength="2" value="Lv">
-            </div>
+      <div class="name-inputs">
+        <div class="input-group">
+          <label for="input4">Player 4</label>
+          <input type="text" id="input4" maxlength="2" value="Op" />
         </div>
-        <div class="buttons">
-            <button class="btn" id="reset-button">Reset Positions</button>
-            <button class="btn btn-rotate" id="rotate-button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                    <path d="M3 3v5h5"></path>
-                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
-                    <path d="M16 21h5v-5"></path>
-                </svg>
-                Rotate Players
-            </button>
+        <div class="input-group">
+          <label for="input3">Player 3</label>
+          <input type="text" id="input3" maxlength="2" value="Ce" />
         </div>
+        <div class="input-group">
+          <label for="input2">Player 2</label>
+          <input type="text" id="input2" maxlength="2" value="Po" />
+        </div>
+        <div class="input-group">
+          <label for="input5">Player 5</label>
+          <input type="text" id="input5" maxlength="2" value="Po" />
+        </div>
+        <div class="input-group">
+          <label for="input6">Player 6</label>
+          <input type="text" id="input6" maxlength="2" value="Lb" />
+        </div>
+        <div class="input-group">
+          <label for="input1">Player 1</label>
+          <input type="text" id="input1" maxlength="2" value="Lv" />
+        </div>
+      </div>
+      <div class="buttons">
+        <button class="btn" id="reset-button">Reset Positions</button>
+        <button class="btn btn-rotate" id="rotate-button">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+            <path
+              d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"
+            ></path>
+            <path d="M16 21h5v-5"></path>
+          </svg>
+          Rotate Players
+        </button>
+      </div>
     </div>
-    
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const court = document.querySelector('.court');
-            const players = document.querySelectorAll('.player');
-            const verticalLine = document.querySelector('.boundary-line.vertical');
-            const horizontalLine = document.querySelector('.boundary-line.horizontal');
-            const resetButton = document.getElementById('reset-button');
-            const rotateButton = document.getElementById('rotate-button');
-            const svgContainer = document.querySelector('.connection-lines');
-            const inputs = document.querySelectorAll('input[type="text"]');
-            
-            let activePlayer = null;
-            let offsetX, offsetY;
-            let connectionLines = [];
-            
-            // Court dimensions
-            const courtWidth = court.clientWidth;
-            const courtHeight = court.clientHeight;
-            
-            // Player size
-            const playerSize = 60;
-            
-            // Court midpoint (to separate front and back rows)
-            const courtMidY = courtHeight / 2;
-            
-            // Define default positions
-            const defaultPositions = {
-                'player4': { left: courtWidth / 6, top: courtHeight / 4 },
-                'player3': { left: courtWidth / 2, top: courtHeight / 4 },
-                'player2': { left: 5 * courtWidth / 6 - playerSize, top: courtHeight / 4 },
-                'player5': { left: courtWidth / 6, top: 3 * courtHeight / 4 - playerSize },
-                'player6': { left: courtWidth / 2, top: 3 * courtHeight / 4 - playerSize },
-                'player1': { left: 5 * courtWidth / 6 - playerSize, top: 3 * courtHeight / 4 - playerSize }
-            };
-            
-            // Define default player names
-            const defaultNames = {
-                '1': 'Lv',
-                '2': 'Po',
-                '3': 'Ce',
-                '4': 'Op',
-                '5': 'Po',
-                '6': 'Lb'
-            };
-            
-            // Define player relationships
-            const playerRelationships = {
-                '4': ['5', '3'],
-                '3': ['6', '4', '2'],
-                '2': ['1', '3'],
-                '5': ['4', '6'],
-                '6': ['3', '5', '1'],
-                '1': ['2', '6']
-            };
-            
-            // Initialize player positions
-            function initializePositions() {
-                players.forEach(player => {
-                    const position = defaultPositions[player.id];
-                    player.style.left = position.left + 'px';
-                    player.style.top = position.top + 'px';
-                });
-                clearRelatedHighlights();
-                clearConnectionLines();
+      document.addEventListener("DOMContentLoaded", function () {
+        const court = document.querySelector(".court");
+        const players = document.querySelectorAll(".player");
+        const verticalLine = document.querySelector(".boundary-line.vertical");
+        const horizontalLine = document.querySelector(
+          ".boundary-line.horizontal"
+        );
+        const resetButton = document.getElementById("reset-button");
+        const rotateButton = document.getElementById("rotate-button");
+        const svgContainer = document.querySelector(".connection-lines");
+        const inputs = document.querySelectorAll('input[type="text"]');
+
+        let activePlayer = null;
+        let offsetX, offsetY;
+        let connectionLines = [];
+
+        // Court dimensions
+        const courtWidth = court.clientWidth;
+        const courtHeight = court.clientHeight;
+
+        // Player size
+        const playerSize = 60;
+
+        // Court midpoint (to separate front and back rows)
+        const courtMidY = courtHeight / 2;
+
+        // Define default positions
+        const defaultPositions = {
+          player4: { left: courtWidth / 6, top: courtHeight / 4 },
+          player3: { left: courtWidth / 2, top: courtHeight / 4 },
+          player2: {
+            left: (5 * courtWidth) / 6 - playerSize,
+            top: courtHeight / 4,
+          },
+          player5: {
+            left: courtWidth / 6,
+            top: (3 * courtHeight) / 4 - playerSize,
+          },
+          player6: {
+            left: courtWidth / 2,
+            top: (3 * courtHeight) / 4 - playerSize,
+          },
+          player1: {
+            left: (5 * courtWidth) / 6 - playerSize,
+            top: (3 * courtHeight) / 4 - playerSize,
+          },
+        };
+
+        // Define default player names
+        const defaultNames = {
+          1: "Lv",
+          2: "Po",
+          3: "Ce",
+          4: "Op",
+          5: "Po",
+          6: "Lb",
+        };
+
+        // Define player relationships
+        const playerRelationships = {
+          4: ["5", "3"],
+          3: ["6", "4", "2"],
+          2: ["1", "3"],
+          5: ["4", "6"],
+          6: ["3", "5", "1"],
+          1: ["2", "6"],
+        };
+
+        // Initialize player positions
+        function initializePositions() {
+          players.forEach((player) => {
+            const position = defaultPositions[player.id];
+            player.style.left = position.left + "px";
+            player.style.top = position.top + "px";
+          });
+          clearRelatedHighlights();
+          clearConnectionLines();
+        }
+
+        // Initialize player names
+        function initializeNames() {
+          for (let i = 1; i <= 6; i++) {
+            document.getElementById(`input${i}`).value = defaultNames[i];
+            document.getElementById(`name${i}`).innerText = defaultNames[i];
+          }
+        }
+
+        // Initialize
+        initializePositions();
+
+        // Set up event listeners for name inputs
+        inputs.forEach((input) => {
+          const position = input.id.substring(5); // Get the position number from inputX
+
+          input.addEventListener("input", function () {
+            // Convert to uppercase
+            this.value = this.value.toUpperCase();
+
+            // Update the player name on the court
+            const nameElement = document.getElementById(`name${position}`);
+            if (nameElement) {
+              nameElement.innerText = this.value;
             }
-            
-            // Initialize player names
-            function initializeNames() {
-                for (let i = 1; i <= 6; i++) {
-                    document.getElementById(`input${i}`).value = defaultNames[i];
-                    document.getElementById(`name${i}`).innerText = defaultNames[i];
-                }
+          });
+
+          // Enforce 2 character limit
+          input.addEventListener("keydown", function (e) {
+            if (
+              this.value.length >= 2 &&
+              e.key !== "Backspace" &&
+              e.key !== "Delete" &&
+              e.key !== "ArrowLeft" &&
+              e.key !== "ArrowRight"
+            ) {
+              e.preventDefault();
             }
-            
-            // Initialize 
-            initializePositions();
-            
-            // Set up event listeners for name inputs
-            inputs.forEach(input => {
-                const position = input.id.substring(5); // Get the position number from inputX
-                
-                input.addEventListener('input', function() {
-                    // Convert to uppercase
-                    this.value = this.value.toUpperCase();
-                    
-                    // Update the player name on the court
-                    const nameElement = document.getElementById(`name${position}`);
-                    if (nameElement) {
-                        nameElement.innerText = this.value;
-                    }
-                });
-                
-                // Enforce 2 character limit
-                input.addEventListener('keydown', function(e) {
-                    if (this.value.length >= 2 && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
-                        e.preventDefault();
-                    }
-                });
-            });
-            
-            // Reset positions when button is clicked
-            resetButton.addEventListener('click', function() {
-                initializePositions();
-            });
-            
-            // Rotate players when button is clicked
-            rotateButton.addEventListener('click', function() {
-                rotatePlayerNames();
-            });
-            
-            // Rotate player names clockwise
-            function rotatePlayerNames() {
-                // Get current names
-                const names = [];
-                for (let i = 1; i <= 6; i++) {
-                    names.push(document.getElementById(`name${i}`).innerText);
-                }
-                
-                // Rotation mapping (clockwise):
-                // 4→3→2→1→6→5→4
-                const rotationMap = {
-                    '4': '5',
-                    '3': '4',
-                    '2': '3',
-                    '1': '2',
-                    '6': '1',
-                    '5': '6'
-                };
-                
-                // Apply rotation to player names on court
-                const newNames = {};
-                for (let i = 1; i <= 6; i++) {
-                    const rotatedPosition = rotationMap[i];
-                    newNames[rotatedPosition] = document.getElementById(`name${i}`).innerText;
-                }
-                
-                // Update names on court and in inputs
-                for (let i = 1; i <= 6; i++) {
-                    document.getElementById(`name${i}`).innerText = newNames[i];
-                    document.getElementById(`input${i}`).value = newNames[i];
-                }
-            }
-            
-            // Get player position data
-            function getPlayerPosition(player) {
-                return {
-                    left: parseInt(player.style.left),
-                    top: parseInt(player.style.top),
-                    right: parseInt(player.style.left) + playerSize,
-                    bottom: parseInt(player.style.top) + playerSize,
-                    centerX: parseInt(player.style.left) + playerSize / 2,
-                    centerY: parseInt(player.style.top) + playerSize / 2,
-                    position: player.dataset.position
-                };
-            }
-            
-            // Clear all related player highlights
-            function clearRelatedHighlights() {
-                players.forEach(player => {
-                    player.classList.remove('related');
-                    player.classList.remove('active');
-                });
-            }
-            
-            // Clear all connection lines
-            function clearConnectionLines() {
-                while (svgContainer.firstChild) {
-                    svgContainer.removeChild(svgContainer.firstChild);
-                }
-                connectionLines = [];
-            }
-            
-            // Highlight related players and draw connection lines
-            function highlightRelatedPlayers(player) {
-                clearRelatedHighlights();
-                clearConnectionLines();
-                
-                // Mark the active player
-                player.classList.add('active');
-                
-                // Get the position number
-                const position = player.dataset.position;
-                
-                // Get the related positions
-                const relatedPositions = playerRelationships[position];
-                
-                // Highlight related players
-                relatedPositions.forEach(relatedPos => {
-                    const relatedPlayer = document.querySelector(`.player[data-position="${relatedPos}"]`);
-                    if (relatedPlayer) {
-                        relatedPlayer.classList.add('related');
-                        
-                        // Draw a connection line
-                        const activePos = getPlayerPosition(player);
-                        const relatedPlayerPos = getPlayerPosition(relatedPlayer);
-                        
-                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        line.setAttribute('x1', activePos.centerX);
-                        line.setAttribute('y1', activePos.centerY);
-                        line.setAttribute('x2', relatedPlayerPos.centerX);
-                        line.setAttribute('y2', relatedPlayerPos.centerY);
-                        line.classList.add('connection-line');
-                        
-                        svgContainer.appendChild(line);
-                        connectionLines.push(line);
-                    }
-                });
-            }
-            
-            // Update connection lines based on player positions
-            function updateConnectionLines() {
-                if (!activePlayer) return;
-                
-                const activePos = getPlayerPosition(activePlayer);
-                const position = activePlayer.dataset.position;
-                const relatedPositions = playerRelationships[position];
-                
-                connectionLines.forEach((line, index) => {
-                    const relatedPos = relatedPositions[index];
-                    const relatedPlayer = document.querySelector(`.player[data-position="${relatedPos}"]`);
-                    if (relatedPlayer) {
-                        const relatedPlayerPos = getPlayerPosition(relatedPlayer);
-                        
-                        line.setAttribute('x1', activePos.centerX);
-                        line.setAttribute('y1', activePos.centerY);
-                        line.setAttribute('x2', relatedPlayerPos.centerX);
-                        line.setAttribute('y2', relatedPlayerPos.centerY);
-                    }
-                });
-            }
-            
-            // Mouse down event to start dragging
-            players.forEach(player => {
-                player.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    
-                    // Only one player can be dragged at a time
-                    if (activePlayer) return;
-                    
-                    activePlayer = player;
-                    offsetX = e.clientX - player.getBoundingClientRect().left;
-                    offsetY = e.clientY - player.getBoundingClientRect().top;
-                    
-                    // Highlight related players
-                    highlightRelatedPlayers(player);
-                });
-            });
-            
-            // Mouse move event to drag player
-            document.addEventListener('mousemove', function(e) {
-                if (!activePlayer) return;
-                
-                const courtRect = court.getBoundingClientRect();
-                let newLeft = e.clientX - courtRect.left - offsetX;
-                let newTop = e.clientY - courtRect.top - offsetY;
-                
-                // Constrain to court boundaries
-                newLeft = Math.max(0, Math.min(newLeft, courtWidth - playerSize));
-                newTop = Math.max(0, Math.min(newTop, courtHeight - playerSize));
-                
-                // Check player position constraints
-                let canMove = true;
-                let blockingPlayer = null;
-                let blockDirection = "";
-                
-                // Calculate new center position
-                const newCenterX = newLeft + playerSize / 2;
-                const newCenterY = newTop + playerSize / 2;
-                
-                // Get active player position number
-                const activePosition = parseInt(activePlayer.dataset.position);
-                
-                // Check constraints between players
-                players.forEach(otherPlayer => {
-                    if (otherPlayer === activePlayer) return;
-                    
-                    const otherPos = getPlayerPosition(otherPlayer);
-                    const otherPosition = parseInt(otherPlayer.dataset.position);
-                    
-                    // Check position constraints based on volleyball rules
-                    switch (activePosition) {
-                        case 4: // Position 4 must stay in front of 5 and to the left of 3
-                            if (otherPosition === 5 && newCenterY > otherPos.centerY) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "horizontal";
-                            } else if (otherPosition === 3 && newCenterX > otherPos.centerX) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "vertical";
-                            }
-                            break;
-                        case 3: // Position 3 must stay in front of 6, to the right of 4 and to the left of 2
-                            if (otherPosition === 6 && newCenterY > otherPos.centerY) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "horizontal";
-                            } else if (otherPosition === 4 && newCenterX < otherPos.centerX) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "vertical";
-                            } else if (otherPosition === 2 && newCenterX > otherPos.centerX) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "vertical";
-                            }
-                            break;
-                        case 2: // Position 2 must stay in front of 1 and to the right of 3
-                            if (otherPosition === 1 && newCenterY > otherPos.centerY) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "horizontal";
-                            } else if (otherPosition === 3 && newCenterX < otherPos.centerX) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "vertical";
-                            }
-                            break;
-                        case 5: // Position 5 must stay behind 4 and to the left of 6
-                            if (otherPosition === 4 && newCenterY < otherPos.centerY) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "horizontal";
-                            } else if (otherPosition === 6 && newCenterX > otherPos.centerX) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "vertical";
-                            }
-                            break;
-                        case 6: // Position 6 must stay behind 3, to the right of 5 and to the left of 1
-                            if (otherPosition === 3 && newCenterY < otherPos.centerY) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "horizontal";
-                            } else if (otherPosition === 5 && newCenterX < otherPos.centerX) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "vertical";
-                            } else if (otherPosition === 1 && newCenterX > otherPos.centerX) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "vertical";
-                            }
-                            break;
-                        case 1: // Position 1 must stay behind 2 and to the right of 6
-                            if (otherPosition === 2 && newCenterY < otherPos.centerY) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "horizontal";
-                            } else if (otherPosition === 6 && newCenterX < otherPos.centerX) {
-                                canMove = false;
-                                blockingPlayer = otherPlayer;
-                                blockDirection = "vertical";
-                            }
-                            break;
-                    }
-                });
-                
-                if (canMove) {
-                    // Update position if movement is allowed
-                    activePlayer.style.left = newLeft + 'px';
-                    activePlayer.style.top = newTop + 'px';
-                    
-                    // Update connection lines
-                    updateConnectionLines();
-                    
-                    // Hide boundary lines
-                    verticalLine.classList.remove('active');
-                    horizontalLine.classList.remove('active');
-                } else if (blockingPlayer) {
-                    // Visual feedback for blocked movement
-                    blockingPlayer.classList.add('highlight');
-                    setTimeout(() => blockingPlayer.classList.remove('highlight'), 500);
-                    
-                    // Show boundary line
-                    const blockingPos = getPlayerPosition(blockingPlayer);
-                    
-                    if (blockDirection === "vertical") {
-                        verticalLine.style.left = blockingPos.centerX + 'px';
-                        verticalLine.classList.add('active');
-                        horizontalLine.classList.remove('active');
-                    } else {
-                        horizontalLine.style.top = blockingPos.centerY + 'px';
-                        horizontalLine.classList.add('active');
-                        verticalLine.classList.remove('active');
-                    }
-                }
-            });
-            
-            // Mouse up event to stop dragging
-            document.addEventListener('mouseup', function() {
-                if (!activePlayer) return;
-                
-                activePlayer.style.zIndex = '1';
-                activePlayer = null;
-                verticalLine.classList.remove('active');
-                horizontalLine.classList.remove('active');
-                
-                // Clear highlights and connection lines after a short delay
-                setTimeout(() => {
-                    clearRelatedHighlights();
-                    clearConnectionLines();
-                }, 500);
-            });
-            
-            // Touch events for mobile support
-            players.forEach(player => {
-                player.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    
-                    if (activePlayer) return;
-                    
-                    activePlayer = player;
-                    const touch = e.touches[0];
-                    offsetX = touch.clientX - player.getBoundingClientRect().left;
-                    offsetY = touch.clientY - player.getBoundingClientRect().top;
-                    
-                    // Highlight related players
-                    highlightRelatedPlayers(player);
-                });
-            });
-            
-            document.addEventListener('touchmove', function(e) {
-                if (!activePlayer) return;
-                
-                const touch = e.touches[0];
-                const courtRect = court.getBoundingClientRect();
-                let newLeft = touch.clientX - courtRect.left - offsetX;
-                let newTop = touch.clientY - courtRect.top - offsetY;
-                
-                // Apply the same constraints as with mouse events
-                newLeft = Math.max(0, Math.min(newLeft, courtWidth - playerSize));
-                newTop = Math.max(0, Math.min(newTop, courtHeight - playerSize));
-                
-                // Check constraints (simplified version)
-                let canMove = true;
-                // ... implement the same constraint logic as in the mousemove event
-                
-                if (canMove) {
-                    activePlayer.style.left = newLeft + 'px';
-                    activePlayer.style.top = newTop + 'px';
-                    updateConnectionLines();
-                }
-            });
-            
-            document.addEventListener('touchend', function() {
-                if (!activePlayer) return;
-                
-                activePlayer.style.zIndex = '1';
-                activePlayer = null;
-                verticalLine.classList.remove('active');
-                horizontalLine.classList.remove('active');
-                
-                // Clear highlights and connection lines after a short delay
-                setTimeout(() => {
-                    clearRelatedHighlights();
-                    clearConnectionLines();
-                }, 500);
-            });
+          });
         });
+
+        // Reset positions when button is clicked
+        resetButton.addEventListener("click", function () {
+          initializePositions();
+        });
+
+        // Rotate players when button is clicked
+        rotateButton.addEventListener("click", function () {
+          rotatePlayerNames();
+        });
+
+        // Rotate player names clockwise
+        function rotatePlayerNames() {
+          // Get current names
+          const names = [];
+          for (let i = 1; i <= 6; i++) {
+            names.push(document.getElementById(`name${i}`).innerText);
+          }
+
+          // Rotation mapping (clockwise):
+          // 4→3→2→1→6→5→4
+          const rotationMap = {
+            4: "5",
+            3: "4",
+            2: "3",
+            1: "2",
+            6: "1",
+            5: "6",
+          };
+
+          // Apply rotation to player names on court
+          const newNames = {};
+          for (let i = 1; i <= 6; i++) {
+            const rotatedPosition = rotationMap[i];
+            newNames[rotatedPosition] = document.getElementById(
+              `name${i}`
+            ).innerText;
+          }
+
+          // Update names on court and in inputs
+          for (let i = 1; i <= 6; i++) {
+            document.getElementById(`name${i}`).innerText = newNames[i];
+            document.getElementById(`input${i}`).value = newNames[i];
+          }
+        }
+
+        // Get player position data
+        function getPlayerPosition(player) {
+          return {
+            left: parseInt(player.style.left),
+            top: parseInt(player.style.top),
+            right: parseInt(player.style.left) + playerSize,
+            bottom: parseInt(player.style.top) + playerSize,
+            centerX: parseInt(player.style.left) + playerSize / 2,
+            centerY: parseInt(player.style.top) + playerSize / 2,
+            position: player.dataset.position,
+          };
+        }
+
+        // Clear all related player highlights
+        function clearRelatedHighlights() {
+          players.forEach((player) => {
+            player.classList.remove("related");
+            player.classList.remove("active");
+          });
+        }
+
+        // Clear all connection lines
+        function clearConnectionLines() {
+          while (svgContainer.firstChild) {
+            svgContainer.removeChild(svgContainer.firstChild);
+          }
+          connectionLines = [];
+        }
+
+        // Highlight related players and draw connection lines
+        function highlightRelatedPlayers(player) {
+          clearRelatedHighlights();
+          clearConnectionLines();
+
+          // Mark the active player
+          player.classList.add("active");
+
+          // Get the position number
+          const position = player.dataset.position;
+
+          // Get the related positions
+          const relatedPositions = playerRelationships[position];
+
+          // Highlight related players
+          relatedPositions.forEach((relatedPos) => {
+            const relatedPlayer = document.querySelector(
+              `.player[data-position="${relatedPos}"]`
+            );
+            if (relatedPlayer) {
+              relatedPlayer.classList.add("related");
+
+              // Draw a connection line
+              const activePos = getPlayerPosition(player);
+              const relatedPlayerPos = getPlayerPosition(relatedPlayer);
+
+              const line = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "line"
+              );
+              line.setAttribute("x1", activePos.centerX);
+              line.setAttribute("y1", activePos.centerY);
+              line.setAttribute("x2", relatedPlayerPos.centerX);
+              line.setAttribute("y2", relatedPlayerPos.centerY);
+              line.classList.add("connection-line");
+
+              svgContainer.appendChild(line);
+              connectionLines.push(line);
+            }
+          });
+        }
+
+        // Update connection lines based on player positions
+        function updateConnectionLines() {
+          if (!activePlayer) return;
+
+          const activePos = getPlayerPosition(activePlayer);
+          const position = activePlayer.dataset.position;
+          const relatedPositions = playerRelationships[position];
+
+          connectionLines.forEach((line, index) => {
+            const relatedPos = relatedPositions[index];
+            const relatedPlayer = document.querySelector(
+              `.player[data-position="${relatedPos}"]`
+            );
+            if (relatedPlayer) {
+              const relatedPlayerPos = getPlayerPosition(relatedPlayer);
+
+              line.setAttribute("x1", activePos.centerX);
+              line.setAttribute("y1", activePos.centerY);
+              line.setAttribute("x2", relatedPlayerPos.centerX);
+              line.setAttribute("y2", relatedPlayerPos.centerY);
+            }
+          });
+        }
+
+        // Mouse down event to start dragging
+        players.forEach((player) => {
+          player.addEventListener("mousedown", function (e) {
+            e.preventDefault();
+
+            // Only one player can be dragged at a time
+            if (activePlayer) return;
+
+            activePlayer = player;
+            offsetX = e.clientX - player.getBoundingClientRect().left;
+            offsetY = e.clientY - player.getBoundingClientRect().top;
+
+            // Highlight related players
+            highlightRelatedPlayers(player);
+          });
+        });
+
+        // Mouse move event to drag player
+        document.addEventListener("mousemove", function (e) {
+          if (!activePlayer) return;
+
+          const courtRect = court.getBoundingClientRect();
+          let newLeft = e.clientX - courtRect.left - offsetX;
+          let newTop = e.clientY - courtRect.top - offsetY;
+
+          // Constrain to court boundaries
+          newLeft = Math.max(0, Math.min(newLeft, courtWidth - playerSize));
+          newTop = Math.max(0, Math.min(newTop, courtHeight - playerSize));
+
+          // Check player position constraints
+          let canMove = true;
+          let blockingPlayer = null;
+          let blockDirection = "";
+
+          // Calculate new center position
+          const newCenterX = newLeft + playerSize / 2;
+          const newCenterY = newTop + playerSize / 2;
+
+          // Get active player position number
+          const activePosition = parseInt(activePlayer.dataset.position);
+
+          // Check constraints between players
+          players.forEach((otherPlayer) => {
+            if (otherPlayer === activePlayer) return;
+
+            const otherPos = getPlayerPosition(otherPlayer);
+            const otherPosition = parseInt(otherPlayer.dataset.position);
+
+            // Check position constraints based on volleyball rules
+            switch (activePosition) {
+              case 4: // Position 4 must stay in front of 5 and to the left of 3
+                if (otherPosition === 5 && newCenterY > otherPos.centerY) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "horizontal";
+                } else if (
+                  otherPosition === 3 &&
+                  newCenterX > otherPos.centerX
+                ) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "vertical";
+                }
+                break;
+              case 3: // Position 3 must stay in front of 6, to the right of 4 and to the left of 2
+                if (otherPosition === 6 && newCenterY > otherPos.centerY) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "horizontal";
+                } else if (
+                  otherPosition === 4 &&
+                  newCenterX < otherPos.centerX
+                ) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "vertical";
+                } else if (
+                  otherPosition === 2 &&
+                  newCenterX > otherPos.centerX
+                ) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "vertical";
+                }
+                break;
+              case 2: // Position 2 must stay in front of 1 and to the right of 3
+                if (otherPosition === 1 && newCenterY > otherPos.centerY) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "horizontal";
+                } else if (
+                  otherPosition === 3 &&
+                  newCenterX < otherPos.centerX
+                ) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "vertical";
+                }
+                break;
+              case 5: // Position 5 must stay behind 4 and to the left of 6
+                if (otherPosition === 4 && newCenterY < otherPos.centerY) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "horizontal";
+                } else if (
+                  otherPosition === 6 &&
+                  newCenterX > otherPos.centerX
+                ) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "vertical";
+                }
+                break;
+              case 6: // Position 6 must stay behind 3, to the right of 5 and to the left of 1
+                if (otherPosition === 3 && newCenterY < otherPos.centerY) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "horizontal";
+                } else if (
+                  otherPosition === 5 &&
+                  newCenterX < otherPos.centerX
+                ) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "vertical";
+                } else if (
+                  otherPosition === 1 &&
+                  newCenterX > otherPos.centerX
+                ) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "vertical";
+                }
+                break;
+              case 1: // Position 1 must stay behind 2 and to the right of 6
+                if (otherPosition === 2 && newCenterY < otherPos.centerY) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "horizontal";
+                } else if (
+                  otherPosition === 6 &&
+                  newCenterX < otherPos.centerX
+                ) {
+                  canMove = false;
+                  blockingPlayer = otherPlayer;
+                  blockDirection = "vertical";
+                }
+                break;
+            }
+          });
+
+          if (canMove) {
+            // Update position if movement is allowed
+            activePlayer.style.left = newLeft + "px";
+            activePlayer.style.top = newTop + "px";
+
+            // Update connection lines
+            updateConnectionLines();
+
+            // Hide boundary lines
+            verticalLine.classList.remove("active");
+            horizontalLine.classList.remove("active");
+          } else if (blockingPlayer) {
+            // Visual feedback for blocked movement
+            blockingPlayer.classList.add("highlight");
+            setTimeout(() => blockingPlayer.classList.remove("highlight"), 500);
+
+            // Show boundary line
+            const blockingPos = getPlayerPosition(blockingPlayer);
+
+            if (blockDirection === "vertical") {
+              verticalLine.style.left = blockingPos.centerX + "px";
+              verticalLine.classList.add("active");
+              horizontalLine.classList.remove("active");
+            } else {
+              horizontalLine.style.top = blockingPos.centerY + "px";
+              horizontalLine.classList.add("active");
+              verticalLine.classList.remove("active");
+            }
+          }
+        });
+
+        // Mouse up event to stop dragging
+        document.addEventListener("mouseup", function () {
+          if (!activePlayer) return;
+
+          activePlayer.style.zIndex = "1";
+          activePlayer = null;
+          verticalLine.classList.remove("active");
+          horizontalLine.classList.remove("active");
+
+          // Clear highlights and connection lines after a short delay
+          setTimeout(() => {
+            clearRelatedHighlights();
+            clearConnectionLines();
+          }, 500);
+        });
+
+        // Touch events for mobile support
+        players.forEach((player) => {
+          player.addEventListener("touchstart", function (e) {
+            e.preventDefault();
+
+            if (activePlayer) return;
+
+            activePlayer = player;
+            const touch = e.touches[0];
+            offsetX = touch.clientX - player.getBoundingClientRect().left;
+            offsetY = touch.clientY - player.getBoundingClientRect().top;
+
+            // Highlight related players
+            highlightRelatedPlayers(player);
+          });
+        });
+
+        document.addEventListener("touchmove", function (e) {
+          if (!activePlayer) return;
+
+          const touch = e.touches[0];
+          const courtRect = court.getBoundingClientRect();
+          let newLeft = touch.clientX - courtRect.left - offsetX;
+          let newTop = touch.clientY - courtRect.top - offsetY;
+
+          // Apply the same constraints as with mouse events
+          newLeft = Math.max(0, Math.min(newLeft, courtWidth - playerSize));
+          newTop = Math.max(0, Math.min(newTop, courtHeight - playerSize));
+
+          // Check constraints (simplified version)
+          let canMove = true;
+          // ... implement the same constraint logic as in the mousemove event
+
+          if (canMove) {
+            activePlayer.style.left = newLeft + "px";
+            activePlayer.style.top = newTop + "px";
+            updateConnectionLines();
+          }
+        });
+
+        document.addEventListener("touchend", function () {
+          if (!activePlayer) return;
+
+          activePlayer.style.zIndex = "1";
+          activePlayer = null;
+          verticalLine.classList.remove("active");
+          horizontalLine.classList.remove("active");
+
+          // Clear highlights and connection lines after a short delay
+          setTimeout(() => {
+            clearRelatedHighlights();
+            clearConnectionLines();
+          }, 500);
+        });
+      });
     </script>
-</body>
+  </body>
 </html>
