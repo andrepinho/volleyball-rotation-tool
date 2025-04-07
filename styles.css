@@ -128,7 +128,8 @@ h1 {
 }
 
 .player.highlight {
-  animation: flash 0.5s;
+  /* animation: flash 0.5s; */
+  background-color: #e74c3c !important;
 }
 
 .player.related {
@@ -181,18 +182,18 @@ h1 {
 }
 
 .boundary-line.active {
-  animation: flashLine 2s;
+  opacity: 0.5;
 }
 
-@keyframes flashLine {
+/* @keyframes flashLine {
   0%,
   100% {
-    opacity: 0;
+
   }
   50% {
     opacity: 0.8;
   }
-}
+} */
 
 .buttons {
   display: flex;

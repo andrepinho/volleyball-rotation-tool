@@ -92,6 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
     players.forEach((player) => {
       player.classList.remove("related");
       player.classList.remove("active");
+      player.classList.remove("highlight");
     });
   }
 
@@ -169,43 +170,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Mouse down event to start dragging
-  players.forEach((player) => {
-    player.addEventListener("mousedown", function (e) {
-      e.preventDefault();
+  // Check position constraints
+  function checkPositionConstraints(newCenterX, newCenterY) {
+    if (!activePlayer) return { canMove: true };
 
-      // Only one player can be dragged at a time
-      if (activePlayer) return;
-
-      activePlayer = player;
-      offsetX = e.clientX - player.getBoundingClientRect().left;
-      offsetY = e.clientY - player.getBoundingClientRect().top;
-
-      // Highlight related players
-      highlightRelatedPlayers(player);
-    });
-  });
-
-  // Mouse move event to drag player
-  document.addEventListener("mousemove", function (e) {
-    if (!activePlayer) return;
-
-    const courtRect = court.getBoundingClientRect();
-    let newLeft = e.clientX - courtRect.left - offsetX;
-    let newTop = e.clientY - courtRect.top - offsetY;
-
-    // Constrain to court boundaries
-    newLeft = Math.max(0, Math.min(newLeft, courtWidth - playerSize));
-    newTop = Math.max(0, Math.min(newTop, courtHeight - playerSize));
-
-    // Check player position constraints
     let canMove = true;
     let blockingPlayer = null;
     let blockDirection = "";
-
-    // Calculate new center position
-    const newCenterX = newLeft + playerSize / 2;
-    const newCenterY = newTop + playerSize / 2;
 
     // Get active player position number
     const activePosition = parseInt(activePlayer.dataset.position);
@@ -296,6 +267,34 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
+    return { canMove, blockingPlayer, blockDirection };
+  }
+
+  // Handle player movement - shared logic for both mouse and touch
+  function handlePlayerMove(clientX, clientY) {
+    if (!activePlayer) return;
+
+    const courtRect = court.getBoundingClientRect();
+    let newLeft = clientX - courtRect.left - offsetX;
+    let newTop = clientY - courtRect.top - offsetY;
+
+    // Constrain to court boundaries
+    newLeft = Math.max(0, Math.min(newLeft, courtWidth - playerSize));
+    newTop = Math.max(0, Math.min(newTop, courtHeight - playerSize));
+
+    // Calculate new center position
+    const newCenterX = newLeft + playerSize / 2;
+    const newCenterY = newTop + playerSize / 2;
+
+    // Check position constraints
+    const { canMove, blockingPlayer, blockDirection } =
+      checkPositionConstraints(newCenterX, newCenterY);
+
+    // Reset all highlight states
+    players.forEach((p) => p.classList.remove("highlight"));
+    verticalLine.classList.remove("active");
+    horizontalLine.classList.remove("active");
+
     if (canMove) {
       // Update position if movement is allowed
       activePlayer.style.left = newLeft + "px";
@@ -303,14 +302,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Update connection lines
       updateConnectionLines();
-
-      // Hide boundary lines
-      verticalLine.classList.remove("active");
-      horizontalLine.classList.remove("active");
     } else if (blockingPlayer) {
       // Visual feedback for blocked movement
       blockingPlayer.classList.add("highlight");
-      // setTimeout(() => blockingPlayer.classList.remove("highlight"), 500);
 
       // Show boundary line
       const blockingPos = getPlayerPosition(blockingPlayer);
@@ -318,13 +312,33 @@ document.addEventListener("DOMContentLoaded", function () {
       if (blockDirection === "vertical") {
         verticalLine.style.left = blockingPos.centerX + "px";
         verticalLine.classList.add("active");
-        horizontalLine.classList.remove("active");
       } else {
         horizontalLine.style.top = blockingPos.centerY + "px";
         horizontalLine.classList.add("active");
-        verticalLine.classList.remove("active");
       }
     }
+  }
+
+  // Mouse down event to start dragging
+  players.forEach((player) => {
+    player.addEventListener("mousedown", function (e) {
+      e.preventDefault();
+
+      // Only one player can be dragged at a time
+      if (activePlayer) return;
+
+      activePlayer = player;
+      offsetX = e.clientX - player.getBoundingClientRect().left;
+      offsetY = e.clientY - player.getBoundingClientRect().top;
+
+      // Highlight related players
+      highlightRelatedPlayers(player);
+    });
+  });
+
+  // Mouse move event to drag player
+  document.addEventListener("mousemove", function (e) {
+    handlePlayerMove(e.clientX, e.clientY);
   });
 
   // Mouse up event to stop dragging
@@ -361,22 +375,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!activePlayer) return;
 
     const touch = e.touches[0];
-    const courtRect = court.getBoundingClientRect();
-    let newLeft = touch.clientX - courtRect.left - offsetX;
-    let newTop = touch.clientY - courtRect.top - offsetY;
-
-    // Apply the same constraints as with mouse events
-    newLeft = Math.max(0, Math.min(newLeft, courtWidth - playerSize));
-    newTop = Math.max(0, Math.min(newTop, courtHeight - playerSize));
-
-    // Check constraints (simplified version)
-    let canMove = true;
-
-    if (canMove) {
-      activePlayer.style.left = newLeft + "px";
-      activePlayer.style.top = newTop + "px";
-      updateConnectionLines();
-    }
+    handlePlayerMove(touch.clientX, touch.clientY);
   });
 
   document.addEventListener("touchend", function () {
@@ -388,5 +387,20 @@ document.addEventListener("DOMContentLoaded", function () {
     horizontalLine.classList.remove("active");
     clearRelatedHighlights();
     clearConnectionLines();
+  });
+
+  // Handle window resize
+  window.addEventListener("resize", function () {
+    // Update court dimensions
+    const newCourtWidth = court.clientWidth;
+    const newCourtHeight = court.clientHeight;
+
+    // Adjust positions if court size changed significantly
+    if (
+      Math.abs(newCourtWidth - courtWidth) > 10 ||
+      Math.abs(newCourtHeight - courtHeight) > 10
+    ) {
+      initializePositions();
+    }
   });
 });
