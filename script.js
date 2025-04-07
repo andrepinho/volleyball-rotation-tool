@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const verticalLine = document.querySelector(".boundary-line.vertical");
   const horizontalLine = document.querySelector(".boundary-line.horizontal");
   const resetButton = document.getElementById("reset-button");
-  const rotateButton = document.getElementById("rotate-button");
   const svgContainer = document.querySelector(".connection-lines");
 
   let activePlayer = null;
@@ -20,8 +19,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Define default positions
   const defaultPositions = {
-    player4: { left: courtWidth / 6, top: courtHeight / 4 },
-    player3: { left: courtWidth / 2.2, top: courtHeight / 4 },
+    player4: {
+      left: courtWidth / 6,
+      top: courtHeight / 4,
+    },
+    player3: {
+      left: courtWidth / 2.3,
+      top: courtHeight / 4,
+    },
     player2: {
       left: (5 * courtWidth) / 6 - playerSize,
       top: courtHeight / 4,
@@ -31,23 +36,13 @@ document.addEventListener("DOMContentLoaded", function () {
       top: (3 * courtHeight) / 4 - playerSize,
     },
     player6: {
-      left: courtWidth / 2.2,
+      left: courtWidth / 2.3,
       top: (3 * courtHeight) / 4 - playerSize,
     },
     player1: {
       left: (5 * courtWidth) / 6 - playerSize,
       top: (3 * courtHeight) / 4 - playerSize,
     },
-  };
-
-  // Define default player names
-  const defaultNames = {
-    1: "Lv",
-    2: "Po",
-    3: "Ce",
-    4: "Op",
-    5: "Po",
-    6: "Lb",
   };
 
   // Define player relationships
@@ -71,14 +66,6 @@ document.addEventListener("DOMContentLoaded", function () {
     clearConnectionLines();
   }
 
-  // Initialize player names
-  function initializeNames() {
-    for (let i = 1; i <= 6; i++) {
-      document.getElementById(`input${i}`).value = defaultNames[i];
-      document.getElementById(`name${i}`).innerText = defaultNames[i];
-    }
-  }
-
   // Initialize
   initializePositions();
 
@@ -86,38 +73,6 @@ document.addEventListener("DOMContentLoaded", function () {
   resetButton.addEventListener("click", function () {
     initializePositions();
   });
-
-  // Rotate players when button is clicked
-  rotateButton.addEventListener("click", function () {
-    rotatePlayerNames();
-  });
-
-  // Rotate player names clockwise
-  function rotatePlayerNames() {
-    // Get current names
-    const names = [];
-    for (let i = 1; i <= 6; i++) {
-      names.push(document.getElementById(`name${i}`).innerText);
-    }
-
-    // Rotation mapping (clockwise):
-    // 4→3→2→1→6→5→4
-    const rotationMap = {
-      4: "5",
-      3: "4",
-      2: "3",
-      1: "2",
-      6: "1",
-      5: "6",
-    };
-
-    // Apply rotation to player names on court
-    const newNames = {};
-    for (let i = 1; i <= 6; i++) {
-      const rotatedPosition = rotationMap[i];
-      newNames[rotatedPosition] = document.getElementById(`name${i}`).innerText;
-    }
-  }
 
   // Get player position data
   function getPlayerPosition(player) {
@@ -355,7 +310,7 @@ document.addEventListener("DOMContentLoaded", function () {
     } else if (blockingPlayer) {
       // Visual feedback for blocked movement
       blockingPlayer.classList.add("highlight");
-      setTimeout(() => blockingPlayer.classList.remove("highlight"), 500);
+      // setTimeout(() => blockingPlayer.classList.remove("highlight"), 500);
 
       // Show boundary line
       const blockingPos = getPlayerPosition(blockingPlayer);
@@ -378,14 +333,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     activePlayer.style.zIndex = "1";
     activePlayer = null;
+
     verticalLine.classList.remove("active");
     horizontalLine.classList.remove("active");
-
-    // Clear highlights and connection lines after a short delay
-    setTimeout(() => {
-      clearRelatedHighlights();
-      clearConnectionLines();
-    }, 500);
+    clearRelatedHighlights();
+    clearConnectionLines();
   });
 
   // Touch events for mobile support
@@ -419,7 +371,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Check constraints (simplified version)
     let canMove = true;
-    // ... implement the same constraint logic as in the mousemove event
 
     if (canMove) {
       activePlayer.style.left = newLeft + "px";
@@ -435,11 +386,7 @@ document.addEventListener("DOMContentLoaded", function () {
     activePlayer = null;
     verticalLine.classList.remove("active");
     horizontalLine.classList.remove("active");
-
-    // Clear highlights and connection lines after a short delay
-    setTimeout(() => {
-      clearRelatedHighlights();
-      clearConnectionLines();
-    }, 500);
+    clearRelatedHighlights();
+    clearConnectionLines();
   });
 });
