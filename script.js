@@ -18,13 +18,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // Player size
   const playerSize = 60;
 
-  // Court midpoint (to separate front and back rows)
-  const courtMidY = courtHeight / 2;
-
   // Define default positions
   const defaultPositions = {
     player4: { left: courtWidth / 6, top: courtHeight / 4 },
-    player3: { left: courtWidth / 2, top: courtHeight / 4 },
+    player3: { left: courtWidth / 2.2, top: courtHeight / 4 },
     player2: {
       left: (5 * courtWidth) / 6 - playerSize,
       top: courtHeight / 4,
@@ -34,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
       top: (3 * courtHeight) / 4 - playerSize,
     },
     player6: {
-      left: courtWidth / 2,
+      left: courtWidth / 2.2,
       top: (3 * courtHeight) / 4 - playerSize,
     },
     player1: {
