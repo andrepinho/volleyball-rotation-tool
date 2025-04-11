@@ -37,7 +37,7 @@ export default function App() {
   };
 
   const [playerCoordinates, setPlayerCoordinates] = useState({});
-  const [activePlayer, setActivePlayer] = useState(null);
+  const [activePlayer, setActivePlayer] = useState<number | null>(null);
   const [isRotating, setIsRotating] = useState(false);
   const courtRef = useRef<HTMLDivElement>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
@@ -63,7 +63,10 @@ export default function App() {
     }
   }, [players, courtRef.current?.offsetWidth, courtRef.current?.offsetHeight]);
 
-  function handlePlayerMouseDown(e, playerId) {
+  function handlePlayerMouseDown(
+    e: React.MouseEvent<HTMLDivElement>,
+    playerId: number
+  ) {
     e.preventDefault();
     e.stopPropagation();
 
@@ -80,7 +83,24 @@ export default function App() {
     setActivePlayer(playerId);
   }
 
-  function handleMouseMove(e) {
+  function handlePlayerTouchStart(
+    e: React.TouchEvent<HTMLDivElement>,
+    playerId: number
+  ) {
+    if (isRotating) return; // Prevent dragging during rotation
+
+    // Calculate offset from mouse position to element position
+    const playerElement = e.currentTarget;
+    const rect = playerElement.getBoundingClientRect();
+    dragOffsetRef.current = {
+      x: e.touches[0].clientX - rect.left,
+      y: e.touches[0].clientY - rect.top,
+    };
+
+    setActivePlayer(playerId);
+  }
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     if (activePlayer === null || isRotating) return;
 
     // Get court boundaries
@@ -105,7 +125,7 @@ export default function App() {
     }));
   }
 
-  function handleTouchMove(e) {
+  function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
     if (activePlayer === null || isRotating) return;
 
     // Get court boundaries
@@ -144,36 +164,19 @@ export default function App() {
 
     // Rotate positions (clockwise)
     const newPlayers = players.map((player) => {
-      // Map current position to next position
-      let nextPosition;
-
       // Volleyball rotation rules: 1->6->5->4->3->2->1
-      switch (player.currentPosition) {
-        case 1:
-          nextPosition = 6;
-          break;
-        case 2:
-          nextPosition = 1;
-          break;
-        case 3:
-          nextPosition = 2;
-          break;
-        case 4:
-          nextPosition = 3;
-          break;
-        case 5:
-          nextPosition = 4;
-          break;
-        case 6:
-          nextPosition = 5;
-          break;
-        default:
-          nextPosition = player.currentPosition;
-      }
+      const nextPositionByCurrentPosition = {
+        1: 6,
+        2: 1,
+        3: 2,
+        4: 3,
+        5: 4,
+        6: 5,
+      };
 
       return {
         ...player,
-        currentPosition: nextPosition,
+        currentPosition: nextPositionByCurrentPosition[player.currentPosition],
       };
     });
 
@@ -269,13 +272,21 @@ export default function App() {
               <div className="relative h-1/3 border-b-4 border-white">
                 <div className="absolute w-[130%] left-[-15%] bottom-[-4px] border-b-4 border-white border-dotted" />
               </div>
-              <div className="w-full h-full opacity-35 absolute top-0 grid grid-cols-3 grid-rows-2">
+              <div className="w-full h-full opacity-30 absolute top-0 grid grid-cols-3 grid-rows-2">
                 {courtPositions.map((positionNumber) => (
                   <div
                     key={positionNumber}
-                    className="border text-center flex items-end justify-center p-4 text-white text-4xl"
+                    className="border text-center flex items-end justify-center p-4 text-2xl "
                   >
-                    {positionNumber}
+                    <div
+                      className={`flex items-center justify-center rounded-full px-3 py-1 transition-colors ${
+                        players.find(
+                          (p) => p.currentPosition === positionNumber
+                        )?.color
+                      }`}
+                    >
+                      {positionNumber}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -306,7 +317,7 @@ export default function App() {
                       userSelect: "none",
                     }}
                     onMouseDown={(e) => handlePlayerMouseDown(e, player.id)}
-                    onTouchStart={(e) => handlePlayerMouseDown(e, player.id)}
+                    onTouchStart={(e) => handlePlayerTouchStart(e, player.id)}
                   >
                     {player.initials}
                   </div>
