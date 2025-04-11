@@ -2,7 +2,7 @@
 
 An interactive visual experience to help understand the position of teams using 5x1 formation during serves.
 
-![volleyball-tool](https://github.com/user-attachments/assets/9ded5230-220f-4e20-9f76-f11484db92af)
+![volleyball-tool](https://github.com/user-attachments/assets/1c92efef-af79-45b5-82cc-5663401c2bd0)
 
 # Run it locally
 
