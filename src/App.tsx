@@ -22,8 +22,12 @@ export default function App() {
     }));
   });
 
-  // Calculate position coordinates based on court grid
-  const getPositionCoordinates = (position, courtWidth, courtHeight) => {
+  // Calculate position coordinates based on court grid'
+  const getPositionCoordinates = (
+    position: number,
+    courtWidth: number,
+    courtHeight: number
+  ) => {
     // Find position index in courtPositions
     const posIndex = courtPositions.indexOf(position);
     const col = posIndex % 3;
@@ -77,7 +81,7 @@ export default function App() {
   };
 
   // Check position constraints
-  function checkPositionConstraints(newCenterX, newCenterY) {
+  function checkPositionConstraints(newCenterX: number, newCenterY: number) {
     if (activePlayer === null) return { canMove: true };
 
     let canMove = true;
@@ -234,7 +238,7 @@ export default function App() {
     const { canMove } = checkPositionConstraints(x, y);
 
     // Allow dragging even if blocked, but only update position if canMove is true
-    if (canMove || (blockingPlayer === activePlayer)) {
+    if (canMove || blockingPlayer === activePlayer) {
       setPlayerCoordinates((prev) => ({
         ...prev,
         [activePlayer]: {
@@ -262,7 +266,7 @@ export default function App() {
     const { canMove } = checkPositionConstraints(x, y);
 
     // Allow dragging even if blocked, but only update position if canMove is true
-    if (canMove || (blockingPlayer === activePlayer)) {
+    if (canMove || blockingPlayer === activePlayer) {
       setPlayerCoordinates((prev) => ({
         ...prev,
         [activePlayer]: {
@@ -284,20 +288,32 @@ export default function App() {
     setIsRotating(true);
 
     // Rotate positions (clockwise)
-    const newPlayers = players.map((player) => {
-      // Volleyball rotation rules: 1->6->5->4->3->2->1
-      const nextPositionByCurrentPosition = {
-        1: 6,
-        2: 1,
-        3: 2,
-        4: 3,
-        5: 4,
-        6: 5,
-      };
+    // Standard volleyball rotation mapping (clockwise)
+    const positionRotationMap = {
+      1: 6,
+      2: 1,
+      3: 2,
+      4: 3,
+      5: 4,
+      6: 5,
+    };
 
+    // Create a new array with the rotated positions
+    const newPlayers = players.map((player) => {
+      // LB skips net and goes from 5 to 1
+      if (player.id === 5 && player.currentPosition === 5) {
+        return { ...player, currentPosition: 1 };
+      }
+
+      // CE skips back and goes from 2 to 4
+      if (player.id === 2 && player.currentPosition === 2) {
+        return { ...player, currentPosition: 4 };
+      }
+
+      // Standard rotation for other players
       return {
         ...player,
-        currentPosition: nextPositionByCurrentPosition[player.currentPosition],
+        currentPosition: positionRotationMap[player.currentPosition],
       };
     });
 
@@ -325,26 +341,21 @@ export default function App() {
   }
 
   return (
-    <div className="m-auto bg-radial from-sky-500 from-40% bg-sky-950">
-      <div className="p-12 flex items-center justify-center">
-        <div className="h-[90vh] aspect-1/2 rounded-2xl">
+    <div className="m-auto bg-radial from-sky-500 from-40% bg-sky-950 h-screen">
+      <div className="md:p-12 p-4 flex items-center justify-center overflow-clip">
+        <div className="h-[95vh] aspect-1/2 rounded-2xl">
           <div className="bg-amber-600 flex grow flex-col h-full border-4 text-white">
             <div className="h-1/2 border-b-4 relative">
               <div className="h-full flex flex-col justify-between p-6">
                 <div>
                   <h1 className="text-3xl mb-4">Learn 5x1 rotation</h1>
+
                   <p>
-                    <strong>Instructions:</strong> Drag to move players.
+                    When receiving, it's crucial to position correctly,
+                    otherwise, it's a faul.
                   </p>
-                  <ul className="space-y-1 mt-2">
-                    <li>
-                      - Each player's movement is limited by their relative
-                      neighbors
-                    </li>
-                    <li>
-                      - Players cannot cross their teammates' relative positions
-                    </li>
-                  </ul>
+
+                  <p>Position all the players in each rotation to practice.</p>
                 </div>
 
                 <div className="flex gap-2 justify-around">
@@ -367,7 +378,7 @@ export default function App() {
                       isRotating ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
-                    Reset
+                    Reset P1
                   </button>
                 </div>
               </div>
@@ -389,10 +400,10 @@ export default function App() {
                 {courtPositions.map((positionNumber) => (
                   <div
                     key={positionNumber}
-                    className="border text-center flex items-end justify-center p-4 text-2xl "
+                    className="border text-center flex items-end justify-center p-4 text-xl "
                   >
                     <div
-                      className={`flex items-center justify-center rounded-full px-3 py-1 transition-colors ${
+                      className={`flex items-center justify-center rounded-full w-6 h-6 transition-colors ${
                         players.find(
                           (p) => p.currentPosition === positionNumber
                         )?.color
@@ -431,35 +442,50 @@ export default function App() {
               )}
 
               <div className="w-full h-full top-0 absolute">
-                {players.map((player) => (
-                  <div
-                    key={player.id}
-                    className={`w-12 h-12 ${
-                      player.color
-                    } rounded-full flex justify-center items-center text-white font-bold shadow-md opacity-85 ${
-                      activePlayer === player.id
-                        ? "cursor-grabbing z-10"
-                        : "cursor-grab z-0"
-                    } ${isRotating ? "scale-110" : ""} ${
-                      blockingPlayer === player.id ? "animate-bounce" : ""
-                    }`}
-                    style={{
-                      position: "absolute",
-                      left: `${playerCoordinates[player.id]?.x}px`,
-                      top: `${playerCoordinates[player.id]?.y}px`,
-                      transition:
-                        isRotating || activePlayer !== player.id
-                          ? "all 0.5s ease"
-                          : "none",
-                      touchAction: "none",
-                      userSelect: "none",
-                    }}
-                    onMouseDown={(e) => handlePlayerMouseDown(e, player.id)}
-                    onTouchStart={(e) => handlePlayerTouchStart(e, player.id)}
-                  >
-                    {player.initials}
-                  </div>
-                ))}
+                {players.map((player) => {
+                  const activePlayerPosition = players.find(
+                    (p) => p.id === activePlayer
+                  )?.currentPosition;
+
+                  const relatedToActivePlayer =
+                    activePlayerPosition &&
+                    playerRelationships[activePlayerPosition].includes(
+                      player.currentPosition
+                    );
+
+                  return (
+                    <div
+                      key={player.id}
+                      className={`w-12 h-12 ${
+                        player.color
+                      } rounded-full flex justify-center items-center text-white font-bold shadow-md opacity-85 ${
+                        activePlayer === player.id
+                          ? "cursor-grabbing z-10"
+                          : "cursor-grab z-0"
+                      } ${isRotating ? "scale-110" : ""} ${
+                        blockingPlayer === player.id ? "animate-bounce" : ""
+                      }`}
+                      style={{
+                        position: "absolute",
+                        left: `${playerCoordinates[player.id]?.x}px`,
+                        top: `${playerCoordinates[player.id]?.y}px`,
+                        transition:
+                          isRotating || activePlayer !== player.id
+                            ? "all 0.5s ease"
+                            : "none",
+                        touchAction: "none",
+                        userSelect: "none",
+                      }}
+                      onMouseDown={(e) => handlePlayerMouseDown(e, player.id)}
+                      onTouchStart={(e) => handlePlayerTouchStart(e, player.id)}
+                    >
+                      {player.initials}
+                      {relatedToActivePlayer && (
+                        <div className="w-14 h-14 bg-white animate-pulse absolute rounded-full opacity-10"></div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
