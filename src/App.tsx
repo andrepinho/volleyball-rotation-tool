@@ -42,6 +42,9 @@ export default function App() {
   const courtRef = useRef<HTMLDivElement>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
+  const [blockingPlayer, setBlockingPlayer] = useState<number | null>(null);
+  const [blockDirection, setBlockDirection] = useState<string>("");
+
   // Update player coordinates when the court size changes or players change
   React.useEffect(() => {
     if (courtRef.current) {
@@ -62,6 +65,121 @@ export default function App() {
       setPlayerCoordinates(newCoordinates);
     }
   }, [players, courtRef.current?.offsetWidth, courtRef.current?.offsetHeight]);
+
+  // Define player relationships
+  const playerRelationships = {
+    4: [5, 3],
+    3: [6, 4, 2],
+    2: [1, 3],
+    5: [4, 6],
+    6: [3, 5, 1],
+    1: [2, 6],
+  };
+
+  // Check position constraints
+  function checkPositionConstraints(newCenterX, newCenterY) {
+    if (activePlayer === null) return { canMove: true };
+
+    let canMove = true;
+    let blockingPlayer: number | null = null;
+    let blockDirection = "";
+
+    // Get active player position number
+    const activePosition = players.find(
+      (p) => p.id === activePlayer
+    )?.currentPosition;
+
+    // Check constraints between players
+    players.forEach((otherPlayer) => {
+      if (otherPlayer.id === activePlayer) return;
+
+      const otherPos = playerCoordinates[otherPlayer.id];
+      const otherPosition = otherPlayer.currentPosition;
+
+      // Check position constraints based on volleyball rules
+      switch (activePosition) {
+        case 4:
+          if (otherPosition === 5 && newCenterY > otherPos.y) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "horizontal";
+          } else if (otherPosition === 3 && newCenterX > otherPos.x) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "vertical";
+          }
+          break;
+        case 3:
+          if (otherPosition === 6 && newCenterY > otherPos.y) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "horizontal";
+          } else if (otherPosition === 4 && newCenterX < otherPos.x) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "vertical";
+          } else if (otherPosition === 2 && newCenterX > otherPos.x) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "vertical";
+          }
+          break;
+        case 2:
+          if (otherPosition === 1 && newCenterY > otherPos.y) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "horizontal";
+          } else if (otherPosition === 3 && newCenterX < otherPos.x) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "vertical";
+          }
+          break;
+        case 5:
+          if (otherPosition === 4 && newCenterY < otherPos.y) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "horizontal";
+          } else if (otherPosition === 6 && newCenterX > otherPos.x) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "vertical";
+          }
+          break;
+        case 6:
+          if (otherPosition === 3 && newCenterY < otherPos.y) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "horizontal";
+          } else if (otherPosition === 5 && newCenterX < otherPos.x) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "vertical";
+          } else if (otherPosition === 1 && newCenterX > otherPos.x) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "vertical";
+          }
+          break;
+        case 1:
+          if (otherPosition === 2 && newCenterY < otherPos.y) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "horizontal";
+          } else if (otherPosition === 6 && newCenterX < otherPos.x) {
+            canMove = false;
+            blockingPlayer = otherPlayer.id;
+            blockDirection = "vertical";
+          }
+          break;
+      }
+    });
+
+    setBlockingPlayer(blockingPlayer);
+    setBlockDirection(blockDirection);
+
+    return { canMove };
+  }
 
   function handlePlayerMouseDown(
     e: React.MouseEvent<HTMLDivElement>,
@@ -100,56 +218,59 @@ export default function App() {
     setActivePlayer(playerId);
   }
 
+  // Update mouse move handler
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     if (activePlayer === null || isRotating) return;
 
-    // Get court boundaries
     const courtRect = e.currentTarget.getBoundingClientRect();
-
-    // Calculate position relative to the court
     const x = e.clientX - courtRect.left - dragOffsetRef.current.x;
     const y = e.clientY - courtRect.top - dragOffsetRef.current.y;
 
-    // Add boundary constraints
-    const playerSize = 48; // Width of player element (w-12 = 3rem = 48px)
+    const playerSize = 48; // Width of player element
     const maxX = courtRect.width - playerSize;
     const maxY = courtRect.height - playerSize;
 
-    // Set coordinates with constraints
-    setPlayerCoordinates((prev) => ({
-      ...prev,
-      [activePlayer]: {
-        x: Math.max(0, Math.min(x, maxX)),
-        y: Math.max(0, Math.min(y, maxY)),
-      },
-    }));
+    // Check movement constraints
+    const { canMove } = checkPositionConstraints(x, y);
+
+    // Allow dragging even if blocked, but only update position if canMove is true
+    if (canMove || (blockingPlayer === activePlayer)) {
+      setPlayerCoordinates((prev) => ({
+        ...prev,
+        [activePlayer]: {
+          x: Math.max(0, Math.min(x, maxX)),
+          y: Math.max(0, Math.min(y, maxY)),
+        },
+      }));
+    }
   }
 
+  // Update touch move handler
   function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
     if (activePlayer === null || isRotating) return;
 
-    // Get court boundaries
     const courtRect = e.currentTarget.getBoundingClientRect();
-
     const touch = e.touches[0];
-
-    // Calculate position relative to the court
     const x = touch.clientX - courtRect.left - dragOffsetRef.current.x;
     const y = touch.clientY - courtRect.top - dragOffsetRef.current.y;
 
-    // Add boundary constraints
-    const playerSize = 48; // Width of player element (w-12 = 3rem = 48px)
+    const playerSize = 48; // Width of player element
     const maxX = courtRect.width - playerSize;
     const maxY = courtRect.height - playerSize;
 
-    // Set coordinates with constraints
-    setPlayerCoordinates((prev) => ({
-      ...prev,
-      [activePlayer]: {
-        x: Math.max(0, Math.min(x, maxX)),
-        y: Math.max(0, Math.min(y, maxY)),
-      },
-    }));
+    // Check movement constraints
+    const { canMove } = checkPositionConstraints(x, y);
+
+    // Allow dragging even if blocked, but only update position if canMove is true
+    if (canMove || (blockingPlayer === activePlayer)) {
+      setPlayerCoordinates((prev) => ({
+        ...prev,
+        [activePlayer]: {
+          x: Math.max(0, Math.min(x, maxX)),
+          y: Math.max(0, Math.min(y, maxY)),
+        },
+      }));
+    }
   }
 
   function handleMouseUp() {
@@ -223,14 +344,6 @@ export default function App() {
                     <li>
                       - Players cannot cross their teammates' relative positions
                     </li>
-                    <li>
-                      Active player:{" "}
-                      {activePlayer !== null
-                        ? `${activePlayer} (${
-                            players.find((p) => p.id === activePlayer)?.initials
-                          })`
-                        : "None"}
-                    </li>
                   </ul>
                 </div>
 
@@ -290,21 +403,46 @@ export default function App() {
                   </div>
                 ))}
               </div>
+
+              {/* Render blocking lines */}
+              {blockingPlayer !== null && (
+                <>
+                  {blockDirection === "horizontal" && (
+                    <div
+                      className="absolute border-t-2 border-red-500"
+                      style={{
+                        top: playerCoordinates[blockingPlayer]?.y + 24 + "px", // Adjust position
+                        left: 0,
+                        right: 0,
+                      }}
+                    />
+                  )}
+                  {blockDirection === "vertical" && (
+                    <div
+                      className="absolute border-l-2 border-red-500"
+                      style={{
+                        left: playerCoordinates[blockingPlayer]?.x + 24 + "px", // Adjust position
+                        top: 0,
+                        bottom: 0,
+                      }}
+                    />
+                  )}
+                </>
+              )}
+
               <div className="w-full h-full top-0 absolute">
                 {players.map((player) => (
                   <div
                     key={player.id}
                     className={`w-12 h-12 ${
                       player.color
-                    } rounded-full flex justify-center
-                      items-center text-white font-bold shadow-md
-                      opacity-85
-                      ${
-                        activePlayer === player.id
-                          ? "cursor-grabbing z-10"
-                          : "cursor-grab z-0"
-                      }
-                      ${isRotating ? "scale-110" : ""}`}
+                    } rounded-full flex justify-center items-center text-white font-bold shadow-md opacity-85 ${
+                      activePlayer === player.id
+                        ? "cursor-grabbing z-10"
+                        : "cursor-grab z-0"
+                    } ${isRotating ? "scale-110" : ""} ${
+                      blockingPlayer === player.id ? "animate-bounce" : ""
+                    }`}
                     style={{
                       position: "absolute",
                       left: `${playerCoordinates[player.id]?.x}px`,
